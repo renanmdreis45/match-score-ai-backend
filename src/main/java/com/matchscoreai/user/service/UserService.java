@@ -6,6 +6,7 @@ import com.matchscoreai.user.entity.UserEntity;
 import com.matchscoreai.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -16,6 +17,7 @@ import java.util.UUID;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional
     public UserResponse create(
@@ -32,7 +34,11 @@ public class UserService {
         UserEntity user = UserEntity.builder()
                 .name(request.name())
                 .email(request.email())
-                .password(request.password())
+                .password(
+                        passwordEncoder.encode(
+                                request.password()
+                        )
+                )
                 .createdAt(LocalDateTime.now())
                 .build();
 
