@@ -2,9 +2,11 @@ package com.matchscoreai.auth.service;
 
 import com.matchscoreai.auth.dto.LoginRequest;
 import com.matchscoreai.auth.dto.LoginResponse;
+import com.matchscoreai.shared.exception.InvalidCredentialsException;
 import com.matchscoreai.user.entity.UserEntity;
 import com.matchscoreai.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -12,20 +14,22 @@ import org.springframework.stereotype.Service;
 public class AuthService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public LoginResponse login(
             LoginRequest request
     ) {
-        UserEntity user = userRepository.findByEmail(request.email()).orElseThrow(
-                () -> new RuntimeException(
-                        "Invalid credentials"
-                )
+        UserEntity user = userRepository.findByEmail(
+                request.email()
+        ).orElseThrow(
+                InvalidCredentialsException::new
         );
 
-        if(!user.getPassword().equals(
-                request.password()
+        if(!passwordEncoder.matches(
+                request.password(),
+                user.getPassword()
         )) {
-            throw  new RuntimeException("Invalid credentials");
+            throw new InvalidCredentialsException();
         }
 
         return new LoginResponse("Login successful");
